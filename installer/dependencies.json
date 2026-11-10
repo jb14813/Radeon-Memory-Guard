@@ -1,0 +1,8 @@
+{
+  "Schema": 1,
+  "Artifacts": [
+    {"Name":"osfmount-3.3.1000.exe","Sha256":"5986BEBD3F4954580B5EC910749712E533438A5EF4589C17562F6B07F386CB76","Url":"https://www.osforensics.com/downloads/osfmount.exe"},
+    {"Name":"Arsenal-DriverFiles.zip","Sha256":"DE8A919F69F6FD91E3730270ADBB7FA7FE56AD1BF1C535479F3345102C3253E9","Url":"https://raw.githubusercontent.com/ArsenalRecon/Arsenal-Image-Mounter/c5c1415f91dbca4bdd7413a29d46e0acf74907a2/DriverSetup/DriverFiles.zip"},
+    {"Name":"Arsenal-Image-Mounter-source.zip","Sha256":"DE5583EAA80DC38B12958438622F6AFE624D34E806BCB5798CCB11108864B4DE","Url":"https://github.com/ArsenalRecon/Arsenal-Image-Mounter/archive/c5c1415f91dbca4bdd7413a29d46e0acf74907a2.zip"}
+  ]
+}

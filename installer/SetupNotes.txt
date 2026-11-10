@@ -1,0 +1,22 @@
+Radeon Memory Guard - Experimental
+JZB Apps | https://jzbapps.com | support@jzbapps.com
+
+Tested configuration: AMD Radeon RX 7900 XTX, AMD Windows driver 32.0.32015.12012, Windows 11 Pro 26H2, build 26300. Testing on this configuration does not establish compatibility with other GPUs, drivers, Windows builds, or every AMD feature.
+
+This workaround may cause instability, application crashes, or loss of AMD features. Driver and Windows updates may break it or leave protection temporarily inactive. Use at your own risk, keep important data backed up, and review status after updates. If problems appear, restore the saved settings or uninstall. No guarantee of stability, compatibility, or continuous protection is provided. See the included MIT license.
+
+It maintains the AMD process-watcher setting without changing the official AMD driver. It is independent of AMD and Microsoft and is not endorsed by either company.
+
+The recommended complete setup also redirects repeated AMD executable-cache writes to a fixed 64 MiB physical-memory disk, plus filesystem and driver overhead. AMD External Events Utility stays available. Setup briefly restarts only that service while preparing RAM.
+
+The offline EXE includes the complete original OSFMount installer and pinned Arsenal driver package. Missing storage dependencies are installed from those bundled files after hash and signature checks, with no download fallback. Standard Windows trust roots and signing policy must permit the vendor drivers to load. No certificates are imported by Setup and Windows signing policy is unchanged. Bundled software retains its vendor license; see THIRD-PARTY-NOTICES.txt. The pinned Arsenal source and license/build files are included under third-party.
+
+No manual framework installation is needed. The guard uses Windows' built-in PowerShell 5.1 and Windows management components. Python, Node.js, a .NET Desktop Runtime/SDK, and Visual C++ Redistributable are not required. OSFMount and AWEAlloc do not need to be preinstalled; the complete offline Setup handles them.
+
+The JZB Apps EXE and uninstaller are self-signed for integrity verification. This does not establish a publicly trusted Windows publisher. Windows or organization policy may warn or block execution. The original vendor/Microsoft driver signatures are unchanged.
+
+Windows and the GPU are never restarted automatically. Applying a memory setting after the AMD driver has loaded may require a later driver reload to activate it. The utility cannot reclaim allocations already orphaned in the current Windows session.
+
+Restore and uninstall returns the saved cache file and service settings and releases the RAM disk. Shared storage dependencies and recovery backups remain for inspection. Read the included instructions for compatibility limits and status commands.
+
+Repair preserves existing protection. Deselecting RAM on an already protected PC does not disable it. Use RestoreSsd or Restore and uninstall to remove an existing RAM setup.

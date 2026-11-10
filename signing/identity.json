@@ -1,0 +1,9 @@
+﻿{
+    "Subject":  "CN=JZB Apps Radeon Memory Guard Experimental",
+    "Thumbprint":  "5988465D68AD7D90A7F2383A03CA239B6755F3C9",
+    "CertificateSha256":  "776d8337e24c2f2d0c5b60d8e3778f34a636c0f8de8e1b54e68d081d4a4f6e90",
+    "ExpiresUtc":  "2029-11-10T17:58:07.0000000Z",
+    "SelfSigned":  true,
+    "PublicWindowsTrust":  false,
+    "KeyExportable":  false
+}

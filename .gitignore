@@ -1,0 +1,15 @@
+build/
+*.etl
+*.sys
+*.cat
+*.cer
+*.pfx
+*.key
+*.pem
+*.pvk
+*.snk
+!signing/JZBApps-RadeonMemoryGuard.cer
+*.log
+state.json*
+last-run.json*
+.DS_Store

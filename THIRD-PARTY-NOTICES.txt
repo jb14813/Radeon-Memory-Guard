@@ -1,0 +1,44 @@
+Radeon Memory Guard - third-party distribution notices
+
+JZB Apps code is licensed under MIT. Bundled vendor software retains its own
+license and signature and is not relicensed as JZB Apps software.
+
+OSFMount 3.3.1000 - PassMark Software Pty Ltd
+https://www.osforensics.com/tools/mount-disk-images.html
+The complete, unmodified original installer is bundled. PassMark permits
+redistribution of the complete unmodified OSFMount V3 binary package:
+https://forums.passmark.com/osforensics-osfmount-osfclone/50381-osfmount-license
+Its full license is included in that original installer. The offline package
+does not replace, remove, or modify the vendor's license or signature.
+
+Arsenal Image Mounter driver package
+Copyright Arsenal Consulting, Inc. (d/b/a Arsenal Recon), Olof Lagerkvist,
+and the respective upstream authors. The package and INF use AGPLv3 terms;
+individual components, including AWEAlloc, also contain permissive licenses.
+https://github.com/ArsenalRecon/Arsenal-Image-Mounter
+Exact source revision: c5c1415f91dbca4bdd7413a29d46e0acf74907a2
+The offline EXE includes the original DriverFiles.zip and the complete source
+archive at that revision. The source and its license/build files are installed
+under the guard's third-party directory. No vendor binary is modified or re-signed.
+Only the shared AWEAlloc service is activated; an Arsenal SCSI adapter is not
+installed. Shared storage dependencies remain installed after guard removal.
+
+AWEAlloc source license at the bundled revision:
+Copyright (C) 2005-2025 Olof Lagerkvist, Arsenal Recon.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in the
+Software without restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

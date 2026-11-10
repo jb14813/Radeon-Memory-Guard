@@ -1,0 +1,43 @@
+name: Windows checks
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Windows PowerShell 5.1 tests
+        shell: powershell
+        run: |
+          .\tests\Test-Core.ps1
+          .\tests\Test-Ssd.ps1
+          .\tests\Test-Ram.ps1
+      - name: PowerShell 7 tests
+        shell: pwsh
+        run: |
+          .\tests\Test-Core.ps1
+          .\tests\Test-Ssd.ps1
+          .\tests\Test-Ram.ps1
+      - name: Build portable release
+        shell: powershell
+        run: .\tools\Build-Release.ps1
+      - name: Verify offline dependency paths
+        shell: powershell
+        run: |
+          .\tools\Prepare-OfflinePayload.ps1
+          .\tests\Test-Offline.ps1
+          pwsh -NoProfile -File .\tests\Test-Offline.ps1
+      - name: Build and verify Windows installer
+        shell: powershell
+        run: .\tests\Test-Installer.ps1
+      - uses: actions/upload-artifact@v7
+        with:
+          name: RadeonMemoryGuard
+          path: |
+            build/RadeonMemoryGuard-*.zip
+            build/RadeonMemoryGuard-Setup-*.exe
+            build/RadeonMemoryGuard-OfflineSetup-*.exe
+            build/RadeonMemoryGuard-*.sha256
