@@ -8,7 +8,7 @@ $build=if($OutputDirectory){[IO.Path]::GetFullPath($OutputDirectory)}else{Join-P
 $null=New-Item -ItemType Directory -Path $build -Force
 $zip=Join-Path $build ('RadeonMemoryGuard-'+$version+'.zip')
 if(Test-Path -LiteralPath $zip){throw 'Release already exists; remove that exact generated ZIP before rebuilding.'}
-$names=@('RadeonMemoryGuard.ps1','RadeonMemoryGuard.psm1','RadeonRamCache.ps1','README.md','LICENSE','VERSION','THIRD-PARTY-NOTICES.txt')
+$names=@('RadeonMemoryGuard.ps1','RadeonMemoryGuard.psm1','RadeonRamCache.ps1','RadeonStorage.ps1','README.md','VALIDATION.md','LICENSE','VERSION','THIRD-PARTY-NOTICES.txt')
 $files=@($names | ForEach-Object {Join-Path $root $_})
 Compress-Archive -LiteralPath $files -DestinationPath $zip -CompressionLevel Optimal
 $hash=(Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant()

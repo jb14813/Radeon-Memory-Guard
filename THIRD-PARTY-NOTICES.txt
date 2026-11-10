@@ -3,14 +3,6 @@ Radeon Memory Guard - third-party distribution notices
 JZB Apps code is licensed under MIT. Bundled vendor software retains its own
 license and signature and is not relicensed as JZB Apps software.
 
-OSFMount 3.3.1000 - PassMark Software Pty Ltd
-https://www.osforensics.com/tools/mount-disk-images.html
-The complete, unmodified original installer is bundled. PassMark permits
-redistribution of the complete unmodified OSFMount V3 binary package:
-https://forums.passmark.com/osforensics-osfmount-osfclone/50381-osfmount-license
-Its full license is included in that original installer. The offline package
-does not replace, remove, or modify the vendor's license or signature.
-
 Arsenal Image Mounter driver package
 Copyright Arsenal Consulting, Inc. (d/b/a Arsenal Recon), Olof Lagerkvist,
 and the respective upstream authors. The package and INF use AGPLv3 terms;
@@ -20,8 +12,11 @@ Exact source revision: c5c1415f91dbca4bdd7413a29d46e0acf74907a2
 The offline EXE includes the original DriverFiles.zip and the complete source
 archive at that revision. The source and its license/build files are installed
 under the guard's third-party directory. No vendor binary is modified or re-signed.
-Only the shared AWEAlloc service is activated; an Arsenal SCSI adapter is not
-installed. Shared storage dependencies remain installed after guard removal.
+The Arsenal miniport and AWEAlloc provide the RAM storage. No Arsenal desktop
+application is installed. Our controller uses Windows APIs to manage the original
+signed drivers. The complete signed driver package remains unchanged. Existing
+shared drivers are preserved on removal; unused components created by this
+installation are tracked for cleanup.
 
 AWEAlloc source license at the bundled revision:
 Copyright (C) 2005-2025 Olof Lagerkvist, Arsenal Recon.

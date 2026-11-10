@@ -5,7 +5,7 @@ Free, open-source maintenance for AMD's process-watcher memory-leak workaround o
 update changes the active AMD display service name.
 Optional RAM redirection protects the SSD while keeping AMD External Events Utility running.
 
-**Experimental workaround, version 0.4.0.** Tested on an RX 7900 XTX with AMD driver
+**Experimental workaround, version 0.5.0.** Tested on an RX 7900 XTX with AMD driver
 32.0.32015.12012 and Windows 11 Pro 26H2, build 26300. It preserves AMD's official signed driver and normal Windows
 driver-signing policy. RAM mode uses existing signed storage drivers, while the
 memory workaround itself requires no companion driver.
@@ -30,7 +30,7 @@ Redistributable, Python, Node.js, or Inno Setup on the target PC.
 
 Use 64-bit Windows with an official AMD Radeon driver, administrator access, and
 the standard Windows management components enabled. Only the configuration listed
-above has been hardware-validated. RAM mode additionally requires OSFMount and
+above has been hardware-validated. RAM mode additionally requires the signed Arsenal miniport and
 AWEAlloc drivers: the offline EXE includes their original packages, verifies them,
 and installs them if missing. No dependency download is needed during Setup.
 Standard Windows trust roots and driver-signing policy must already permit the
@@ -38,7 +38,7 @@ vendor drivers to load; the installer does not bypass Windows security policy.
 
 ## Use
 
-Run **RadeonMemoryGuard-OfflineSetup-0.4.0.exe**, accept the administrator prompt, and
+Run **RadeonMemoryGuard-OfflineSetup-0.5.0.exe**, accept the administrator prompt, and
 leave the complete setup selected. It installs memory maintenance and any missing
 verified RAM-storage dependencies from the bundled payload, and enables the fixed
 64 MiB RAM redirect while keeping AMD External Events Utility running. Windows
@@ -111,7 +111,7 @@ The complete EXE setup enables RAM mode. For a portable installation, opt in fro
 an administrator Windows PowerShell:
 
 ```powershell
-# One-time setup: download verified free OSFMount and signed AWEAlloc dependencies.
+# Download the pinned original signed storage-driver package.
 .\RadeonMemoryGuard.ps1 -Action InstallRamBackend
 # Redirect the repeatedly overwritten cache executable into locked physical memory.
 .\RadeonMemoryGuard.ps1 -Action ProtectSsdRam
@@ -135,21 +135,43 @@ then checks the binding every five minutes. A healthy check does not restart AMD
 If the RAM volume disappears, maintenance stops this service, rebuilds the volume,
 repairs its link, and starts it again. Windows and the display device stay running.
 
-The offline EXE bundles OSFMount 3.3.1000 from PassMark and a pinned Arsenal
-driver package, checks hashes and signatures, and stages its Microsoft-signed
-catalog. Only the shared AWE allocator is activated from that package; an Arsenal
-SCSI adapter is not installed. No certificates are created or imported, and Secure
-Boot, HVCI, signing policy, and Test Mode are unchanged. A changed download checksum
-is rejected. Existing signing policy must permit the vendor drivers to load.
-These optional dependencies remain installed after guard removal because other
-software can use them. Portable InstallRamBackend downloads them when missing;
-the offline EXE carries them, third-party notices, and the pinned Arsenal source.
+The offline EXE bundles the pinned, unmodified Arsenal driver package and its
+source archive. Our own controller calls Windows setup and storage APIs; no
+third-party desktop app or command-line tool is installed or launched. Only the
+Arsenal miniport and AWEAlloc are used. Unneeded auxiliary service registrations
+introduced by the original INF are removed before they can start. Windows keeps
+the original complete signed package in its Driver Store.
 
-The latest 102-second file/disk trace recorded 50,841,600 bytes of associated
-executable-cache disk writes reaching the RAM device.
-All associated disk writes were to the identified RAM device, with zero to the
-system SSD and zero trace events lost. The link survived and available RAM-disk
-space stayed stable. This verifies the tested configuration, not every AMD feature.
+Driver hashes and Microsoft hardware signatures are checked. No certificates
+are created or imported, and Secure Boot, HVCI, signing policy and Test Mode are
+unchanged. Setup never reboots Windows or restarts the display device. If Windows
+defers activation, Setup reports the condition instead of requesting a restart.
+
+Uninstall releases the RAM disk first. It removes the controller it created when
+unused, preserves pre-existing/shared drivers, and records anything Windows keeps
+loaded. A live driver is never force-unloaded or marked for deletion. Recovery and
+ownership ledgers remain available under ProgramData.
+
+Upgrading from another RAM backend requires using that installed version's restore
+and uninstall first, then archiving its inactive `ram-cache.json` ledger. Keep the
+saved service/memory backups. Setup refuses to overwrite an incompatible backend;
+there is no automatic backend migration.
+
+The replacement backend passed isolated physical-memory creation, eight 4 MiB
+write/readback cycles, LUN removal, and scoped PnP controller installation/removal
+without a reboot. A 72.52-second trace recorded 35,928,064 bytes of repeated executable-cache disk
+writes reaching the RAM device only, with zero associated cache writes to the SSD
+and zero events lost. Free RAM-disk space stayed constant. After cleanup and a
+simulated update repair, a separate 30.13-second trace recorded another 14,913,536
+bytes reaching RAM only, also with zero events lost. Ordinary logs, shader caches
+and one-time backup writes remain on disk.
+
+Restore/re-enable, recovery after RAM-device loss, replacement-cache repair and
+startup-type reset recovery passed without an additional Windows reboot. A
+250-process launch workload retained no AMD File/IoNm allocations in strict pool
+tracing. Offscreen D3D11 readback and D3D12 allocation/queue checks passed; actual
+games, new driver installations, sleep/resume and cold startup of this release
+have not been comprehensively tested. See [validation coverage](VALIDATION.md).
 Administrative Status is needed to inspect the protected link and storage backend.
 
 After a driver update, writes can recur before the next five-minute check repairs
@@ -239,6 +261,12 @@ powershell -NoProfile -File tests\Test-Ssd.ps1
 pwsh -NoProfile -File tests\Test-Ssd.ps1
 powershell -NoProfile -File tests\Test-Ram.ps1
 pwsh -NoProfile -File tests\Test-Ram.ps1
+powershell -NoProfile -File tests\Test-Storage.ps1
+pwsh -NoProfile -File tests\Test-Storage.ps1
+powershell -NoProfile -File tests\Test-StorageInventory.ps1
+pwsh -NoProfile -File tests\Test-StorageInventory.ps1
+powershell -NoProfile -File tests\Test-Backend.ps1
+pwsh -NoProfile -File tests\Test-Backend.ps1
 powershell -NoProfile -File tools\Build-Release.ps1
 # Requires free Inno Setup 6; produces the local unsigned EXE and checksum.
 powershell -NoProfile -File tests\Test-Installer.ps1
@@ -251,6 +279,6 @@ package contains only the utility, README, license, and version. Raw ETL traces,
 machine logs, certificates, and experimental driver patches are excluded.
 
 There is no telemetry or upload service. Offline Setup uses bundled dependencies.
-Portable online dependency setup downloads from PassMark and GitHub. Windows
+Portable online dependency setup downloads from GitHub. Windows
 signature verification can use Windows' certificate trust/revocation infrastructure.
 Licensed under MIT; see [LICENSE](LICENSE).

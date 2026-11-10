@@ -15,12 +15,18 @@ jobs:
           .\tests\Test-Core.ps1
           .\tests\Test-Ssd.ps1
           .\tests\Test-Ram.ps1
+          .\tests\Test-Storage.ps1
+          .\tests\Test-StorageInventory.ps1
+          .\tests\Test-Backend.ps1
       - name: PowerShell 7 tests
         shell: pwsh
         run: |
           .\tests\Test-Core.ps1
           .\tests\Test-Ssd.ps1
           .\tests\Test-Ram.ps1
+          .\tests\Test-Storage.ps1
+          .\tests\Test-StorageInventory.ps1
+          .\tests\Test-Backend.ps1
       - name: Build portable release
         shell: powershell
         run: .\tools\Build-Release.ps1

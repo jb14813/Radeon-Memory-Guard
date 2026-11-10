@@ -41,7 +41,7 @@ $null=Invoke-RmgProtectSsdRam -StateRoot (Join-Path $root 'whatif') -WhatIf
 Assert (-not (Test-Path -LiteralPath (Join-Path $root 'whatif\ssd-policy.json'))) 'WhatIf modified RAM protection policy.'
 $ledgerRoot=Join-Path $root 'ledger';$null=New-Item -ItemType Directory -Path $ledgerRoot -Force
 $source=& $module {$script:RamSource};$backup=& $module {$script:RamBackup}
-$ledger=[pscustomobject]@{Schema=1;Id=('a'*32);Source=$source;Backup=$backup;CapacityBytes=64MB;OriginalExists=$false;OriginalHash='';Active=$true;Phase='Creating';VolumeRoot='';Target='';PreviousTarget='';DiskNumber=-1;DiskUniqueId=''}
+$ledger=[pscustomobject]@{Schema=2;Provider='Arsenal';AdapterPort=0;DeviceNumber=0;Id=('a'*32);Source=$source;Backup=$backup;CapacityBytes=64MB;OriginalExists=$false;OriginalHash='';Active=$true;Phase='Creating';VolumeRoot='';Target='';PreviousTarget='';DiskNumber=-1;DiskUniqueId=''}
 $ledger | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $ledgerRoot 'ram-cache.json')
 $read=& $module {param($r) Read-RmgRamState $r} $ledgerRoot
 Assert ($read.CapacityBytes -eq 64MB) 'Valid RAM ledger was rejected.'
@@ -52,9 +52,9 @@ $ledger.Source=$source;$ledger.CapacityBytes=128MB;$ledger | ConvertTo-Json | Se
 $failed=$false;try{$null=& $module {param($r) Read-RmgRamState $r} $ledgerRoot}catch{$failed=$true}
 Assert $failed 'An unexpected RAM allocation size was accepted.'
 & $module {Initialize-RmgRamNative}
-$failed=$false;try{$null=[RmgRamNative]::IsPhysicalMemory(999,0)}catch{$failed=$true}
+$failed=$false;try{$null=[RmgStorageNative]::IsPhysicalMemory(999,0)}catch{$failed=$true}
 Assert $failed 'An invalid adapter number reached a storage request.'
-$failed=$false;try{[RmgRamNative]::Remove(0,[uint32]::MaxValue)}catch{$failed=$true}
+$failed=$false;try{[RmgStorageNative]::Remove(0,[uint32]::MaxValue)}catch{$failed=$true}
 Assert $failed 'The all-devices sentinel was accepted for RAM removal.'
 $update=Join-Path $root 'update';$null=Invoke-RmgProtectSsdRam -StateRoot $update
 & $module {$script:Svc.Start=2;$script:Svc.State='Running'}

@@ -35,7 +35,7 @@ beside a download alone is not publisher authentication.
 2. Verify the signed EXE and its complete-file checksum, without importing trust:
 
 ```powershell
-.\Verify-Release.ps1 -Path .\RadeonMemoryGuard-OfflineSetup-0.4.0.exe -CertificatePath .\JZBApps-RadeonMemoryGuard.cer -ExpectedSha256 '<hash from SHA256SUMS>'
+.\Verify-Release.ps1 -Path .\RadeonMemoryGuard-OfflineSetup-0.5.0.exe -CertificatePath .\JZBApps-RadeonMemoryGuard.cer -ExpectedSha256 '<hash from SHA256SUMS>'
 ```
 
 The verifier checks PKCS#7 signature mathematics, asks Windows to verify the PE

@@ -16,7 +16,5 @@ foreach($item in $manifest.Artifacts){
  Copy-Item -LiteralPath $inputPath -Destination $target -Force
  if((Get-FileHash -LiteralPath $target).Hash -ne $item.Sha256){throw 'Payload staging hash mismatch'}
 }
-$signature=Get-AuthenticodeSignature (Join-Path $OutputDirectory 'osfmount-3.3.1000.exe')
-if($signature.Status.ToString() -ne 'Valid' -or $signature.SignerCertificate.Subject -notmatch '^CN=PassMark Software Pty Ltd,'){throw 'Invalid original OSFMount signature'}
 Copy-Item -LiteralPath (Join-Path $root 'THIRD-PARTY-NOTICES.txt') -Destination (Join-Path $OutputDirectory 'THIRD-PARTY-NOTICES.txt') -Force
 [pscustomobject]@{Path=[IO.Path]::GetFullPath($OutputDirectory);Artifacts=$manifest.Artifacts.Count}

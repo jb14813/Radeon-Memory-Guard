@@ -4,7 +4,7 @@ $script:Setting = 'Gmx_MgpuProcessWatcherSupport'
 $script:DefaultState = Join-Path $env:ProgramData 'JZBApps-RadeonMemoryGuard'
 $script:InstallRoot = Join-Path $env:ProgramFiles 'JZB Apps\Radeon Memory Guard'
 $script:TaskName = 'JZBApps-RadeonMemoryGuard'
-$script:PackageFiles = @('RadeonMemoryGuard.ps1','RadeonMemoryGuard.psm1','RadeonRamCache.ps1','README.md','LICENSE','VERSION','THIRD-PARTY-NOTICES.txt')
+$script:PackageFiles = @('RadeonMemoryGuard.ps1','RadeonMemoryGuard.psm1','RadeonRamCache.ps1','RadeonStorage.ps1','README.md','VALIDATION.md','LICENSE','VERSION','THIRD-PARTY-NOTICES.txt')
 
 function Assert-RmgAdmin {
     if ([IntPtr]::Size -ne 8) { throw 'Use 64-bit Windows PowerShell.' }
@@ -377,7 +377,7 @@ function Get-RmgStatus {
     $protected=$null -ne $policy -and $policy.Enabled -and $service.Trusted
     if($mode -eq 'Ram'){$protected=$protected -and $ram.Ready -and $service.Start -eq 3 -and $service.State -eq 'Running'}else{$protected=$protected -and $service.Start -eq 4 -and $service.State -eq 'Stopped'}
     $ssd=[pscustomobject]@{OptedIn=($null -ne $policy -and $policy.Enabled);Mode=$mode;Service=$service;RamCache=$ram;Protected=$protected}
-    [pscustomobject]@{Version='0.4.0';Drivers=$drivers;Ssd=$ssd;AutomaticMaintenance=($null -ne $task -and $task.State -ne 'Disabled');LastTaskResult=$(if($taskInfo){$taskInfo.LastTaskResult}else{$null});LastMaintenance=$last;StateDirectory=$StateRoot;Activation='Configuration status only. Allocation-stack and file/disk tracing establish leak prevention and write redirection.'}
+    [pscustomobject]@{Version='0.5.0';Drivers=$drivers;Ssd=$ssd;AutomaticMaintenance=($null -ne $task -and $task.State -ne 'Disabled');LastTaskResult=$(if($taskInfo){$taskInfo.LastTaskResult}else{$null});LastMaintenance=$last;StateDirectory=$StateRoot;Activation='Configuration status only. Allocation-stack and file/disk tracing establish leak prevention and write redirection.'}
 }
 
 function Stop-RmgMaintenance {
@@ -397,6 +397,7 @@ function Install-RmgMaintenance {
     foreach($name in $script:PackageFiles) {
         if (-not (Test-Path -LiteralPath (Join-Path $PSScriptRoot $name) -PathType Leaf)) {throw "Missing package file: $name"}
     }
+    $null=Read-RmgRamState $script:DefaultState
     # Stop a prior owned task only after checking that the new package is complete.
     Stop-RmgMaintenance -KeepRegistration
     Initialize-RmgStateRoot $script:InstallRoot
@@ -435,6 +436,7 @@ function Uninstall-RmgMaintenance {
         $ramState=Read-RmgRamState $script:DefaultState
         if($ramState -and $ramState.Active){throw 'RAM restoration is incomplete; maintenance and recovery files were retained'}
     }
+    $backend=Remove-RmgStorageBackend $script:DefaultState
     Stop-RmgMaintenance
     if(-not $KeepSetting){$restore+=@(Invoke-RmgRestore)}
     Assert-RmgPlainDirectory $script:InstallRoot
@@ -444,7 +446,7 @@ function Uninstall-RmgMaintenance {
         if(Test-Path -LiteralPath $path){Remove-Item -LiteralPath $path -Force}
     }
     if((Test-Path -LiteralPath $script:InstallRoot) -and @(Get-ChildItem -LiteralPath $script:InstallRoot -Force).Count -eq 0){[IO.Directory]::Delete($script:InstallRoot,$false)}
-    [pscustomobject]@{Installed=$false;KeptSetting=[bool]$KeepSetting;Restoration=$restore;BackupDirectory=$script:DefaultState}
+    [pscustomobject]@{Installed=$false;KeptSetting=[bool]$KeepSetting;Backend=$backend;Restoration=$restore;BackupDirectory=$script:DefaultState}
 }
 function Restore-RmgMaintenance {
     [CmdletBinding(SupportsShouldProcess)]param()
@@ -457,5 +459,6 @@ function Restore-RmgMaintenance {
         Invoke-RmgRestore
     }
 }
+. (Join-Path $PSScriptRoot 'RadeonStorage.ps1')
 if(Test-Path -LiteralPath (Join-Path $PSScriptRoot 'RadeonRamCache.ps1')){. (Join-Path $PSScriptRoot 'RadeonRamCache.ps1')}
 Export-ModuleMember -Function Get-RmgStatus,Invoke-RmgApply,Invoke-RmgRestore,Install-RmgMaintenance,Uninstall-RmgMaintenance,Restore-RmgMaintenance,Invoke-RmgProtectSsd,Invoke-RmgRestoreSsd,Invoke-RmgProtectSsdRam,Install-RmgRamBackend

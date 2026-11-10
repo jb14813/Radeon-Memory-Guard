@@ -74,12 +74,13 @@ Name: "ram"; Description: "Redirect repeated AMD cache writes to 64 MiB RAM (inc
 Source: "{#SourceRoot}\RadeonMemoryGuard.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceRoot}\RadeonMemoryGuard.psm1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceRoot}\RadeonRamCache.ps1"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SourceRoot}\RadeonStorage.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceRoot}\README.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SourceRoot}\VALIDATION.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceRoot}\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceRoot}\VERSION"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceRoot}\THIRD-PARTY-NOTICES.txt"; DestDir: "{app}"; Flags: ignoreversion
 #ifdef OfflinePayloadDir
-Source: "{#OfflinePayloadDir}\osfmount-3.3.1000.exe"; DestDir: "{tmp}\rmg-payload"; Components: ram; Flags: deleteafterinstall
 Source: "{#OfflinePayloadDir}\Arsenal-DriverFiles.zip"; DestDir: "{tmp}\rmg-payload"; Components: ram; Flags: deleteafterinstall
 Source: "{#OfflinePayloadDir}\Arsenal-Image-Mounter-source.zip"; DestDir: "{app}\third-party"; Components: ram; Flags: ignoreversion
 #endif
@@ -140,10 +141,28 @@ begin
 end;
 
 function PrepareToInstall(var NeedsRestart: Boolean): String;
+var
+  LedgerPath: String;
+  Ledger: AnsiString;
+  CompactLedger: String;
 begin
   Result := '';
   if CompareText(WizardDirValue, ExpandConstant('{autopf}\JZB Apps\Radeon Memory Guard')) <> 0 then
     Result := 'Install to the protected default Program Files location.';
+  LedgerPath := ExpandConstant('{commonappdata}\JZBApps-RadeonMemoryGuard\ram-cache.json');
+  if FileExists(LedgerPath) then begin
+    if not LoadStringFromFile(LedgerPath, Ledger) then
+      Result := 'The existing RAM-cache ledger could not be inspected. Setup made no changes.'
+    else begin
+      CompactLedger := String(Ledger);
+      StringChangeEx(CompactLedger, ' ', '', True);
+      StringChangeEx(CompactLedger, #9, '', True);
+      StringChangeEx(CompactLedger, #13, '', True);
+      StringChangeEx(CompactLedger, #10, '', True);
+      if Pos('"Provider":"Arsenal"', CompactLedger) = 0 then
+        Result := 'The existing RAM setup uses a different backend. Restore and uninstall that version, retain its recovery files, and archive its inactive ram-cache.json before installing this version. Setup made no changes.';
+    end;
+  end;
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);

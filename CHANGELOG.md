@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.0 - 2026-11-10
+
+- Use our headless Windows API controller and the original signed Arsenal miniport/AWEAlloc drivers.
+- Keep runtime and offline payloads limited to the controller and required storage drivers; no third-party desktop app or command-line executable runs.
+- Scope device installation/removal to owned controllers and journal ownership before installation completes.
+- Preserve pre-existing/shared drivers and remove unused owned components after RAM restoration.
+- Reject incompatible prior backend ledgers before replacing installed files; use the prior version's restore/uninstall when changing backends.
+- Validate isolated physical RAM writes, readback, LUN cleanup and scoped PnP install/remove without a reboot.
+
 ## 0.4.0 - 2026-11-10
 
 - Bundle the original verified RAM-storage packages for offline Setup, with no network fallback.
