@@ -31,7 +31,7 @@ if($SelfSign){
 $arguments+=(Join-Path $root 'installer\RadeonMemoryGuard.iss')
 $output=& $CompilerPath @arguments 2>&1
 if($LASTEXITCODE -ne 0){throw ('Inno Setup failed: '+($output -join [Environment]::NewLine))}
-$prefix=if($Offline){'RadeonMemoryGuard-OfflineSetup-'}else{'RadeonMemoryGuard-Setup-'}
+$prefix='RadeonMemoryGuard-Setup-'
 $exe=Join-Path $build ($prefix+$version+'.exe')
 if(-not (Test-Path -LiteralPath $exe -PathType Leaf)){throw 'Compiler did not produce the installer'}
 if($SelfSign){$null=& (Join-Path $PSScriptRoot 'Verify-Release.ps1') -Path $exe}

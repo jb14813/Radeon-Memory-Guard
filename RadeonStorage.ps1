@@ -197,7 +197,7 @@ function Get-RmgBackendPackage {
  Initialize-RmgStateRoot $Root
  $target=Join-Path $Root $Name
  if($Offline){
-  if(-not $PayloadRoot -or -not [IO.File]::Exists((Join-Path $PayloadRoot $Name))){throw 'Bundled offline driver payload is missing'}
+  if(-not $PayloadRoot -or -not [IO.File]::Exists((Join-Path $PayloadRoot $Name))){throw 'Bundled driver payload is missing'}
   $source=Join-Path $PayloadRoot $Name
   if([IO.Path]::GetFullPath($source) -ine [IO.Path]::GetFullPath($target)){Copy-Item -LiteralPath $source -Destination $target -Force}
  }elseif(-not [IO.File]::Exists($target)){

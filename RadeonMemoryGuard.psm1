@@ -377,7 +377,7 @@ function Get-RmgStatus {
     $protected=$null -ne $policy -and $policy.Enabled -and $service.Trusted
     if($mode -eq 'Ram'){$protected=$protected -and $ram.Ready -and $service.Start -eq 3 -and $service.State -eq 'Running'}else{$protected=$protected -and $service.Start -eq 4 -and $service.State -eq 'Stopped'}
     $ssd=[pscustomobject]@{OptedIn=($null -ne $policy -and $policy.Enabled);Mode=$mode;Service=$service;RamCache=$ram;Protected=$protected}
-    [pscustomobject]@{Version='0.5.0';Drivers=$drivers;Ssd=$ssd;AutomaticMaintenance=($null -ne $task -and $task.State -ne 'Disabled');LastTaskResult=$(if($taskInfo){$taskInfo.LastTaskResult}else{$null});LastMaintenance=$last;StateDirectory=$StateRoot;Activation='Configuration status only. Allocation-stack and file/disk tracing establish leak prevention and write redirection.'}
+    [pscustomobject]@{Version='0.5.1';Drivers=$drivers;Ssd=$ssd;AutomaticMaintenance=($null -ne $task -and $task.State -ne 'Disabled');LastTaskResult=$(if($taskInfo){$taskInfo.LastTaskResult}else{$null});LastMaintenance=$last;StateDirectory=$StateRoot;Activation='Configuration status only. Allocation-stack and file/disk tracing establish leak prevention and write redirection.'}
 }
 
 function Stop-RmgMaintenance {

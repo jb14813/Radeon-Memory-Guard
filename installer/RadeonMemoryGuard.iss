@@ -29,11 +29,7 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0.17763
 OutputDir={#BuildRoot}
-#ifdef OfflinePayloadDir
-OutputBaseFilename=RadeonMemoryGuard-OfflineSetup-{#AppVersion}
-#else
 OutputBaseFilename=RadeonMemoryGuard-Setup-{#AppVersion}
-#endif
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
@@ -58,9 +54,9 @@ UninstallDisplayName=Radeon Memory Guard (Experimental)
 UninstallDisplayIcon={uninstallexe}
 
 [Messages]
-WelcomeLabel2=Experimental workaround by JZB Apps.%n%nTested on Radeon RX 7900 XTX with AMD driver 32.0.32015.12012 and Windows 11 Pro 26H2 (build 26300).%n%nMay cause instability or affect AMD features. Driver or Windows updates may break protection. Read the compatibility and risk notes before installing.
-InfoBeforeLabel=Read the experimental compatibility and risk notes before continuing.
-InfoBeforeClickLabel=Click Next to continue after reading, or Cancel to exit Setup.
+WelcomeLabel2=Maintain the workaround for an identified Radeon memory leak and redirect repeated executable-cache writes to RAM.
+InfoBeforeLabel=Compatibility and risks
+InfoBeforeClickLabel=
 
 [Types]
 Name: "full"; Description: "Memory protection and RAM write redirection"
@@ -116,7 +112,7 @@ begin
   if Action = 'InstallRamBackend' then
   begin
     Args := Args + ' -Offline -PayloadRoot "' + ExpandConstant('{tmp}\rmg-payload') + '"';
-    Log('Using bundled offline RAM-storage payload; no download fallback.');
+    Log('Preparing RAM-storage drivers.');
   end;
 #endif
   Log('Running guard action: ' + Action);
@@ -129,7 +125,7 @@ end;
 procedure InitializeWizard;
 begin
   ConfigurationSucceeded := False;
-  WizardForm.SelectComponentsLabel.Caption := 'Choose additions. Repair keeps existing protection.';
+  WizardForm.SelectComponentsLabel.Caption := 'Choose protection.';
   ContactLinks := TNewLinkLabel.Create(WizardForm);
   ContactLinks.Parent := WizardForm;
   ContactLinks.Left := ScaleX(12);
@@ -190,7 +186,7 @@ procedure CurPageChanged(CurPageID: Integer);
 begin
   if CurPageID = wpFinished then begin
     if ConfigurationSucceeded then
-      WizardForm.FinishedLabel.Caption := 'Radeon Memory Guard is installed. Automatic maintenance is configured. You can restore the saved settings using Restore and uninstall in the Start menu or Windows Installed apps. See the included instructions for compatibility and activation status.'
+      WizardForm.FinishedLabel.Caption := 'Radeon Memory Guard is installed.'
     else begin
       WizardForm.FinishedHeadingLabel.Caption := 'Setup needs attention';
       WizardForm.FinishedLabel.Caption := FailureText;

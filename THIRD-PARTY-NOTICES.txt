@@ -12,12 +12,6 @@ Exact source revision: c5c1415f91dbca4bdd7413a29d46e0acf74907a2
 The offline EXE includes the original DriverFiles.zip and the complete source
 archive at that revision. The source and its license/build files are installed
 under the guard's third-party directory. No vendor binary is modified or re-signed.
-The Arsenal miniport and AWEAlloc provide the RAM storage. No Arsenal desktop
-application is installed. Our controller uses Windows APIs to manage the original
-signed drivers. The complete signed driver package remains unchanged. Existing
-shared drivers are preserved on removal; unused components created by this
-installation are tracked for cleanup.
-
 AWEAlloc source license at the bundled revision:
 Copyright (C) 2005-2025 Olof Lagerkvist, Arsenal Recon.
 
