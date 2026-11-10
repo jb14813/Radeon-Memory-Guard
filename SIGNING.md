@@ -5,6 +5,14 @@ Radeon Memory Guard's experimental offline EXE and uninstaller carry a dedicated
 verification against our published public key. It does not establish a publicly
 trusted Windows publisher. Windows may warn or block execution under its policy.
 
+## Project policy
+
+Keep and reuse the dedicated JZB Apps key. Publish SHA-256 checksums computed after
+final Authenticode signing, together with the public certificate and the signed
+checksum manifest. This project is not pursuing a third-party signing subscription
+or certificate application. The private key is never distributed. If key rotation
+becomes necessary, announce the change and publish the new certificate fingerprint.
+
 The key is generated and retained nonexportably in the maintainer's Windows user
 certificate store. It is reused for subsequent releases. Only the public .cer and
 its SHA-256 fingerprint are distributed. No private key, PFX, personal certificate,
@@ -64,15 +72,6 @@ public file. Windows SDK SignTool is a build-time tool; users do not need it.
 The default identity command does not install local trust. An owner can explicitly
 choose `-TrustForCurrentUser`; that affects only their user stores and is never run
 by Setup. No machine-wide root trust, kernel-signing policy, or Test Mode is changed.
-
-## Possible future public trust
-
-A publicly trusted signing service or CA is separate from self-signing. Microsoft
-supports individual developers through [Artifact Signing](https://learn.microsoft.com/en-us/azure/artifact-signing/quickstart)
-in eligible regions. [SignPath Foundation](https://signpath.org/terms) provides free
-signing to approved qualifying open-source projects; eligibility and acceptance are
-not guaranteed, and its certificate publisher is SignPath Foundation. This project
-has not been accepted by a third-party signing service.
 
 See [Microsoft's SmartScreen guidance](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/smartscreen-reputation).
 A trusted signature identifies a publisher and detects changes; it does not prove
