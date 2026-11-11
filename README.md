@@ -1,5 +1,7 @@
 # Radeon Memory Guard
 
+[Published v0.5.1 release guide](docs/releases/v0.5.1.md)
+
 Radeon Memory Guard maintains a workaround for an identified AMD Radeon memory leak and redirects repeated executable-cache writes to a 64 MiB RAM disk. AMD External Events Utility stays running.
 
 **Experimental.** May cause instability, application crashes or loss of AMD features. Driver and Windows updates may break protection. Restore saved settings or uninstall if problems appear.
@@ -29,7 +31,7 @@ A driver update can load before maintenance applies the setting. `AppliedNeedsRe
 Open Windows PowerShell as administrator:
 
 ```powershell
-& "$env:ProgramFiles\JZB Apps\Radeon Memory Guard\RadeonMemoryGuard.ps1" -Action Status -Json
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:ProgramFiles\JZB Apps\Radeon Memory Guard\RadeonMemoryGuard.ps1" -Action Status -Json
 ```
 
 ## Repair or uninstall
@@ -43,10 +45,10 @@ Removal restores saved AMD settings and the original cache file, releases the RA
 Extract the ZIP and open Windows PowerShell 5.1 as administrator in that folder:
 
 ```powershell
-.\RadeonMemoryGuard.ps1 -Action Install
-.\RadeonMemoryGuard.ps1 -Action InstallRamBackend
-.\RadeonMemoryGuard.ps1 -Action ProtectSsdRam
-.\RadeonMemoryGuard.ps1 -Action Status -Json
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\RadeonMemoryGuard.ps1" -Action Install
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\RadeonMemoryGuard.ps1" -Action InstallRamBackend
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\RadeonMemoryGuard.ps1" -Action ProtectSsdRam
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\RadeonMemoryGuard.ps1" -Action Status -Json
 ```
 
 Use `-Action RestoreSsd` to restore the cache and service settings, or `-Action Uninstall` to restore and remove the guard. Recovery records are stored in `C:\ProgramData\JZBApps-RadeonMemoryGuard`.
@@ -56,9 +58,13 @@ Use `-Action RestoreSsd` to restore the cache and service settings, or `-Action 
 Requires Windows PowerShell 5.1 and Inno Setup 6. Signing also requires Windows SDK SignTool and the [project signing identity](SIGNING.md).
 
 ```powershell
-.\tools\Build-Release.ps1
-.\tools\Build-Installer.ps1 -SelfSign
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\tools\Build-Release.ps1"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\tools\Build-Installer.ps1" -SelfSign
 ```
+
+## Privacy
+
+Guard state and recovery files stay local; there is no automatic diagnostic upload. Manual RAM-backend installation can download its pinned package from GitHub. Review support reports before sharing; AMD software has its own privacy settings.
 
 ## Support and license
 
