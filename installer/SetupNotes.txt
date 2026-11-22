@@ -1,11 +1,13 @@
 Radeon Memory Guard - Experimental
 JZB Apps | https://jzbapps.com | support@jzbapps.com
 
-Tested on Radeon RX 7900 XTX, AMD driver 32.0.32015.12012, and Windows 11 Pro 26H2 build 26300.
+Tested on Radeon RX 7900 XTX and Windows 11 Pro 26H2 build 26300. Native fixes were validated on Adrenalin 26.11.2 / driver 32.0.32029.2010; workarounds were validated on driver 32.0.32015.12012. Exact image identities are listed in VALIDATION.md.
 
 May cause instability, application crashes or loss of AMD features. Driver and Windows updates may break protection. Restore saved settings or uninstall if problems appear. Other GPUs, drivers and game features have not been comprehensively tested.
 
-Complete setup enables background memory maintenance and redirects repeated executable-cache writes to a 64 MiB RAM disk. Custom setup offers memory maintenance only. AMD External Events Utility is briefly restarted when RAM protection is prepared.
+Complete setup checks native fixes and enables needed protection. Verified fixed images skip the corresponding workaround and RAM dependency installation. On affected images, RAM mode redirects repeated cache writes to 64 MiB of physical memory. Custom setup offers memory maintenance only. Preparing or restoring RAM protection briefly restarts AMD External Events Utility.
+
+Native-fix detection checks exact driver and service/client hashes. A matching version label alone is insufficient. Unfamiliar images are not declared fixed. Review Status after driver changes; rerun Setup after a downgrade if SSD protection is needed.
 
 A memory setting applied after driver loading may require a later driver reload or Windows restart. Setup does not restart either automatically.
 

@@ -54,7 +54,7 @@ UninstallDisplayName=Radeon Memory Guard (Experimental)
 UninstallDisplayIcon={uninstallexe}
 
 [Messages]
-WelcomeLabel2=Maintain the workaround for an identified Radeon memory leak and redirect repeated executable-cache writes to RAM.
+WelcomeLabel2=Maintain protection for identified Radeon memory and cache-write issues. Verified native driver fixes are detected automatically.
 InfoBeforeLabel=Compatibility and risks
 InfoBeforeClickLabel=
 
@@ -63,8 +63,8 @@ Name: "full"; Description: "Memory protection and RAM write redirection"
 Name: "custom"; Description: "Choose protection"; Flags: iscustom
 
 [Components]
-Name: "core"; Description: "Memory workaround and automatic maintenance"; Types: full custom; Flags: fixed
-Name: "ram"; Description: "Redirect repeated AMD cache writes to 64 MiB RAM (includes free signed storage dependencies)"; Types: full
+Name: "core"; Description: "Native-fix detection, memory protection and automatic maintenance"; Types: full custom; Flags: fixed
+Name: "ram"; Description: "Redirect affected AMD cache writes to 64 MiB RAM when needed (includes signed storage dependencies)"; Types: full
 
 [Files]
 Source: "{#SourceRoot}\RadeonMemoryGuard.ps1"; DestDir: "{app}"; Flags: ignoreversion

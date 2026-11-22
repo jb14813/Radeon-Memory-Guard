@@ -88,3 +88,4 @@ Assert (-not (& $module {param($p) Test-RmgMarker $p} $markerPath)) 'An untermin
 [IO.File]::WriteAllText($markerPath,'Unrelated driver data')
 Assert (-not (& $module {param($p) Test-RmgMarker $p} $markerPath)) 'Unsupported driver bytes passed the marker probe.'
 Write-Output "Passed $script:passed core assertions. No machine registry or scheduled task was modified."
+& (Join-Path $PSScriptRoot 'Test-NativeFixes.ps1')

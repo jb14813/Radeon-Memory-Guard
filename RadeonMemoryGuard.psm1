@@ -134,6 +134,19 @@ function Write-RmgRegistryValue($Service,$Exists,$Value) {
         $null=New-ItemProperty -LiteralPath $path -Name $script:Setting -PropertyType DWord -Value $Value -Force
     } elseif (Test-Path -LiteralPath $path) { Remove-ItemProperty -LiteralPath $path -Name $script:Setting -ErrorAction Stop }
 }
+function Test-RmgNativeMemoryFix($Driver) {
+    # Version labels alone do not establish that an OEM/repacked image has the fix.
+    # Keep unknown images on the existing workaround until separately validated.
+    return $Driver.Eligible -and $Driver.Version -eq '32.0.32029.2010' -and
+        $Driver.DriverHash -eq '84BF65785C9D59206D9800915FDD4B4A5CF13A702836347124328E7A780F57CD'
+}
+function Test-RmgNativeSsdFix($Service) {
+    $drivers=@(Get-RmgDrivers)
+    if($drivers.Count -ne 1 -or -not (Test-RmgNativeMemoryFix $drivers[0])){return $false}
+    if(-not $Service){$Service=Get-RmgExternalService}
+    return $Service.Trusted -and $Service.DriverHash -eq '220E65D90CCC546CB93C14B7469906B681F38B619A838129005F3B54583A5F30' -and
+        $null -ne $Service.PSObject.Properties['ClientHash'] -and $Service.ClientHash -eq 'BC31696C0CA9361C55BB5FF34BF28E327FEF1ECD4C22C87A0852E66BF4C0CD28'
+}
 function Invoke-RmgApply {
     [CmdletBinding(SupportsShouldProcess)]param([string]$StateRoot=$script:DefaultState)
     Assert-RmgAdmin
@@ -146,6 +159,27 @@ function Invoke-RmgApply {
             $status='Configured';$detail=$driver.Reason
             if (-not $driver.Eligible) {$status='SkippedUnsupported'}
             elseif (-not (Test-RmgBinding $driver)) {$status='SkippedBindingChanged'}
+            elseif (Test-RmgNativeMemoryFix $driver) {
+                $status='NativeDriverFixed';$detail='The identified driver image includes the validated native memory fix; no memory workaround is applied.'
+                $record=@($state.Records | Where-Object {$_.Service -eq $driver.Service} | Select-Object -First 1)
+                if($record.Count -and -not $record[0].Restored) {
+                    $current=Read-RmgRegistryValue $driver.Service
+                    $original=$record[0].Original
+                    if($record[0].DriverHash -ne $driver.DriverHash -or -not $current.Exists -or $current.Kind -ne 'DWord' -or $current.Value -ne 0 -or ($original.Exists -and $original.Kind -ne 'DWord')) {
+                        $status='NativeFixRestoreConflict';$detail='A native memory fix is available, but the saved image identity or current override changed. Existing configuration and recovery data were preserved.'
+                    } else {
+                        $changed=-not $original.Exists -or $original.Value -ne 0
+                        if($changed) {
+                            Write-RmgRegistryValue $driver.Service $original.Exists $original.Value
+                            $check=Read-RmgRegistryValue $driver.Service
+                            if($check.Exists -ne $original.Exists -or ($check.Exists -and ($check.Kind -ne $original.Kind -or $check.Value -ne $original.Value))){throw 'Native-fix retirement registry readback failed'}
+                        }
+                        $record[0].Restored=$true
+                        Write-RmgJson (Join-Path $StateRoot 'state.json') $state
+                        if($changed){$status='NativeDriverFixedNeedsReload';$detail='The owned memory override was restored to its original state. A later driver reload activates the original mode; no restart was performed.'}
+                    }
+                }
+            }
             else {
                 $current=Read-RmgRegistryValue $driver.Service
                 if ($current.Exists -and $current.Kind -ne 'DWord') {$status='SkippedUnexpectedValueType'}
@@ -215,7 +249,7 @@ function Get-RmgSsdMode($Policy) {
     return $Policy.Mode
 }
 function Get-RmgExternalService {
-    $result=[ordered]@{Name='AMD External Events Utility';Present=$false;Trusted=$false;Reason='Service not installed';State='Absent';Start=$null;DelayedExists=$false;DelayedValue=0;DriverHash='';Version=''}
+    $result=[ordered]@{Name='AMD External Events Utility';Present=$false;Trusted=$false;Reason='Service not installed';State='Absent';Start=$null;DelayedExists=$false;DelayedValue=0;DriverHash='';Version='';ClientHash=''}
     $service=Get-CimInstance Win32_Service -Filter "Name='AMD External Events Utility'" -ErrorAction Stop
     if(-not $service){return [pscustomobject]$result}
     $result.Present=$true;$result.State=[string]$service.State
@@ -240,7 +274,10 @@ function Get-RmgExternalService {
         }
         if($result.Start -notin @(2,3,4) -or $result.DelayedValue -notin @(0,1) -or $result.State -notin @('Running','Stopped')){throw 'Service is transitioning or has unsupported configuration; retry when stable'}
         $result.DriverHash=(Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash
-        $result.Version=$file.VersionInfo.FileVersion;$result.Trusted=$true;$result.Reason='Validated AMD External Events service'
+        $result.Version=$file.VersionInfo.FileVersion
+        $client=Join-Path (Split-Path $path -Parent) 'atieclxx.exe'
+        if(Test-Path -LiteralPath $client -PathType Leaf){$result.ClientHash=(Get-FileHash -LiteralPath $client -Algorithm SHA256).Hash}
+        $result.Trusted=$true;$result.Reason='Validated AMD External Events service'
     } catch {$result.Reason=$_.Exception.Message}
     return [pscustomobject]$result
 }
@@ -261,10 +298,18 @@ function Set-RmgExternalService($Start,$Running,$DelayedExists,$DelayedValue) {
 function Invoke-RmgSsdEnforcement($StateRoot) {
     # Caller owns state.lock. No service change occurs without explicit, durable opt-in.
     $policy=Read-RmgSsdPolicy $StateRoot
-    if(-not $policy -or -not $policy.Enabled){return [pscustomobject]@{Status='NotOptedIn'}}
+    if(-not $policy -or -not $policy.Enabled){
+        if(Test-RmgNativeSsdFix){return [pscustomobject]@{Status='NativeDriverFixed';Detail='The verified driver and External Events images passed native SSD-write validation; RAM redirection is not needed.'}}
+        return [pscustomobject]@{Status='NotOptedIn'}
+    }
     $service=Get-RmgExternalService
     if(-not $service.Present){return [pscustomobject]@{Status='ServiceAbsent'}}
     if(-not $service.Trusted){throw ('SSD protection refused: '+$service.Reason)}
+    if(Test-RmgNativeSsdFix $service){
+        $restored=Restore-RmgSsdOwnedState $StateRoot $service.DriverHash $service.ClientHash
+        if($restored.Status -notin @('Restored','NotOptedIn')){throw 'Native SSD fix detected, but owned protection could not be retired safely. Recovery data were preserved.'}
+        return [pscustomobject]@{Status='NativeDriverFixed';Detail='Owned SSD redirection was restored and released; the verified native driver fix is used.'}
+    }
     if((Get-RmgSsdMode $policy) -eq 'Ram'){
         $cache=Get-RmgRamCacheStatus $StateRoot
         if(-not $cache.Ready){
@@ -318,6 +363,7 @@ function Invoke-RmgProtectSsdRam {
         if($policy -and -not $policy.Enabled -and -not $policy.Restored){throw 'An earlier SSD restore is unresolved'}
         $service=Get-RmgExternalService
         if(-not $service.Present -or -not $service.Trusted){throw ('RAM protection refused: '+$service.Reason)}
+        if(Test-RmgNativeSsdFix $service){return Invoke-RmgSsdEnforcement $StateRoot}
         if(-not $policy -or $policy.Restored){
             $policy=[pscustomobject]@{Schema=1;Enabled=$true;Restored=$false;CapturedUtc=[DateTime]::UtcNow.ToString('o');Original=[pscustomobject]@{Start=$service.Start;Running=($service.State -eq 'Running');DelayedExists=$service.DelayedExists;DelayedValue=$service.DelayedValue};DriverHash=$service.DriverHash;Version=$service.Version}
         }
@@ -333,10 +379,14 @@ function Invoke-RmgRestoreSsd {
     if(-not $PSCmdlet.ShouldProcess('AMD External Events Utility','Disable SSD enforcement and restore saved service configuration')){return}
     Initialize-RmgStateRoot $StateRoot
     $lock=[IO.File]::Open((Join-Path $StateRoot 'state.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
-    try {
+    try {Restore-RmgSsdOwnedState $StateRoot} finally {$lock.Dispose()}
+}
+function Restore-RmgSsdOwnedState($StateRoot,[string]$ExpectedServiceHash,[string]$ExpectedClientHash) {
+    # The public action or maintenance caller already owns state.lock.
         $policy=Read-RmgSsdPolicy $StateRoot
         if(-not $policy -or $policy.Restored){return [pscustomobject]@{Status='NotOptedIn'}}
         $service=Get-RmgExternalService
+        if($ExpectedServiceHash -and ($service.DriverHash -ne $ExpectedServiceHash -or $service.ClientHash -ne $ExpectedClientHash)){return [pscustomobject]@{Status='RestoreConflict';Detail='External Events images changed during native-fix detection; recovery data were preserved.'}}
         if((Get-RmgSsdMode $policy) -eq 'Ram'){
             if(-not $service.Present -or -not $service.Trusted -or ($service.Start -eq 4 -and $service.State -eq 'Running')){return [pscustomobject]@{Status='RestoreConflict';Detail='RAM recovery maintenance retained; service identity or configuration needs review.'}}
             $original=$policy.Original
@@ -359,13 +409,13 @@ function Invoke-RmgRestoreSsd {
         if(-not $check.Trusted -or $check.Start -ne $original.Start -or ($check.State -eq 'Running') -ne $original.Running -or $check.DelayedExists -ne $original.DelayedExists -or $check.DelayedValue -ne $original.DelayedValue){throw 'SSD restoration readback failed; backup is retained for retry'}
         $policy.Restored=$true;Write-RmgJson (Join-Path $StateRoot 'ssd-policy.json') $policy
         [pscustomobject]@{Status='Restored';Service=$check.Name;Start=$check.Start;State=$check.State}
-    } finally {$lock.Dispose()}
 }
 function Get-RmgStatus {
     [CmdletBinding()]param([string]$StateRoot=$script:DefaultState)
     $drivers=@(foreach($driver in @(Get-RmgDrivers)) {
         $value=Read-RmgRegistryValue $driver.Service
-        [pscustomobject]@{Name=$driver.Name;Service=$driver.Service;Version=$driver.Version;DriverHash=$driver.DriverHash;Eligible=$driver.Eligible;Reason=$driver.Reason;SettingPresent=$value.Exists;SettingValue=$value.Value;Configured=($value.Exists -and $value.Kind -eq 'DWord' -and $value.Value -eq 0)}
+        $native=Test-RmgNativeMemoryFix $driver
+        [pscustomobject]@{Name=$driver.Name;Service=$driver.Service;Version=$driver.Version;DriverHash=$driver.DriverHash;Eligible=$driver.Eligible;Reason=$driver.Reason;NativeMemoryFix=$native;MemoryWorkaroundRequired=($driver.Eligible -and -not $native);SettingPresent=$value.Exists;SettingValue=$value.Value;Configured=($value.Exists -and $value.Kind -eq 'DWord' -and $value.Value -eq 0)}
     })
     $task=Get-ScheduledTask -TaskName $script:TaskName -ErrorAction SilentlyContinue
     $last=$null;$lastPath=Join-Path $StateRoot 'last-run.json'
@@ -373,11 +423,15 @@ function Get-RmgStatus {
     $taskInfo=$null;if($task){$taskInfo=Get-ScheduledTaskInfo -TaskName $script:TaskName -ErrorAction SilentlyContinue}
     $policy=Read-RmgSsdPolicy $StateRoot;$service=Get-RmgExternalService
     $mode=Get-RmgSsdMode $policy;$ram=$null
+    $nativeSsd=Test-RmgNativeSsdFix $service
     if($mode -eq 'Ram'){$ram=Get-RmgRamCacheStatus $StateRoot}
     $protected=$null -ne $policy -and $policy.Enabled -and $service.Trusted
     if($mode -eq 'Ram'){$protected=$protected -and $ram.Ready -and $service.Start -eq 3 -and $service.State -eq 'Running'}else{$protected=$protected -and $service.Start -eq 4 -and $service.State -eq 'Stopped'}
-    $ssd=[pscustomobject]@{OptedIn=($null -ne $policy -and $policy.Enabled);Mode=$mode;Service=$service;RamCache=$ram;Protected=$protected}
-    [pscustomobject]@{Version='0.5.1';Drivers=$drivers;Ssd=$ssd;AutomaticMaintenance=($null -ne $task -and $task.State -ne 'Disabled');LastTaskResult=$(if($taskInfo){$taskInfo.LastTaskResult}else{$null});LastMaintenance=$last;StateDirectory=$StateRoot;Activation='Configuration status only. Allocation-stack and file/disk tracing establish leak prevention and write redirection.'}
+    $ramState=Read-RmgRamState $StateRoot
+    $workaroundActive=($ramState -and $ramState.Active) -or ($policy -and $policy.Enabled)
+    if($nativeSsd -and -not $workaroundActive){$mode='Native';$ram=$null;$protected=$service.State -eq 'Running'}
+    $ssd=[pscustomobject]@{OptedIn=($null -ne $policy -and $policy.Enabled);Mode=$mode;NativeFixAvailable=$nativeSsd;WorkaroundActive=[bool]$workaroundActive;Service=$service;RamCache=$ram;Protected=$protected}
+    [pscustomobject]@{Version='0.6.0';Drivers=$drivers;Ssd=$ssd;AutomaticMaintenance=($null -ne $task -and $task.State -ne 'Disabled');LastTaskResult=$(if($taskInfo){$taskInfo.LastTaskResult}else{$null});LastMaintenance=$last;StateDirectory=$StateRoot;Activation='Configuration status only. Allocation-stack and file/disk tracing establish native fixes, leak prevention and write redirection.'}
 }
 
 function Stop-RmgMaintenance {

@@ -335,6 +335,7 @@ function Install-RmgRamBackend {
  [CmdletBinding(SupportsShouldProcess)]param([string]$StateRoot=$script:DefaultState,[string]$PayloadRoot,[switch]$Offline)
  Assert-RmgAdmin
  if(-not $PSCmdlet.ShouldProcess('Signed RAM storage drivers','Prepare headless Arsenal/AWEAlloc backend without rebooting')){return}
+ if(Test-RmgNativeSsdFix){return [pscustomobject]@{Ready=$true;NativeFix=$true;Provider='AMD';RebootRequested=$false;Detail='The verified native fix does not require RAM-storage dependencies.'}}
  Initialize-RmgStateRoot $StateRoot
  $root=Join-Path $StateRoot 'ram-backend-downloads';Initialize-RmgStateRoot $root
  $zip=Get-RmgBackendPackage -Root $root -PayloadRoot $PayloadRoot -Offline:$Offline

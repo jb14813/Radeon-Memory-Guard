@@ -1,5 +1,6 @@
 $ErrorActionPreference='Stop'
 Import-Module (Join-Path $PSScriptRoot '..\RadeonMemoryGuard.psm1') -Force
+& (Get-Module RadeonMemoryGuard) {function script:Test-RmgNativeSsdFix {return $false}}
 $module=Get-Module RadeonMemoryGuard
 $script:passed=0
 function Assert($Value,$Message){if(-not $Value){throw $Message};$script:passed++}

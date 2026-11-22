@@ -8,6 +8,7 @@ Assert (& $module {[bool](Get-Command Get-RmgBackendPackage -ErrorAction Silentl
 $root=Join-Path $PSScriptRoot ('..\build\offline-tests-'+[guid]::NewGuid().ToString('N'))
 $null=New-Item -ItemType Directory -Path $root -Force
 & $module {
+ function script:Test-RmgNativeSsdFix {return $false}
  function script:Invoke-WebRequest {throw 'Network call was attempted during offline setup'}
  function script:Assert-RmgAdmin {}
  function script:Initialize-RmgStateRoot($Path){$null=New-Item -ItemType Directory -Path $Path -Force}
