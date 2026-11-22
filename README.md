@@ -1,5 +1,7 @@
 # Radeon Memory Guard
 
+**Legacy workaround.** Not needed on the verified **Adrenalin 26.11.2 / driver 32.0.32029.2010** build. Prefer an official fixed AMD driver. The project remains available for affected older drivers; see the [exact validation scope](VALIDATION.md). Existing users on the verified fixed build can restore and uninstall the guard.
+
 [Published v0.6.0 release guide](https://github.com/jb14813/Radeon-Memory-Guard/blob/main/docs/releases/v0.6.0.md)
 
 Radeon Memory Guard maintains workarounds for identified AMD memory and cache-write issues, and retires them when a verified native driver fix is available. AMD External Events Utility stays available.
@@ -8,7 +10,7 @@ Radeon Memory Guard maintains workarounds for identified AMD memory and cache-wr
 
 Tested on **Radeon RX 7900 XTX** and **Windows 11 Pro 26H2, build 26300**. Native operation was validated on **Adrenalin 26.11.2 / driver 32.0.32029.2010**; workaround coverage was validated on **32.0.32015.12012**. See [exact identities and limits](VALIDATION.md).
 
-## Install
+## Legacy installation
 
 1. Download `RadeonMemoryGuard-Setup-0.6.0.exe` from [GitHub Releases](https://github.com/jb14813/Radeon-Memory-Guard/releases/tag/v0.6.0).
 2. Run Setup as administrator. Complete setup checks native fixes and enables needed protection; Custom offers memory maintenance only. Verified native fixes skip the corresponding workaround and RAM dependency installation.
